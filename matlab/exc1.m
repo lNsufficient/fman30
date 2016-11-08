@@ -1,0 +1,95 @@
+clear; %För att inte få med skräp.
+
+s_model = [0.1 1 5]';
+m_1 = 0;
+m_2 = 1;
+
+N_small = 10;
+N_big = 1000;
+
+X1_small = zeros(N_small,length(s_model));
+X2_small = X1_small;
+
+X1_big = zeros(N_big,length(s_model));
+X2_big = X1_big;
+
+for i = 1:size(s_model)
+    X1_small(:,i) = normrnd(m_1, s_model(i), N_small,1);
+    X2_small(:,i) = normrnd(m_2, s_model(i), N_small,1);
+    X1_big(:,i) = normrnd(m_1, s_model(i), N_big, 1);
+    X2_big(:,i) = normrnd(m_2, s_model(i), N_big, 1);
+end
+
+s_parzen = [0.01, 0.1, 1, 10]';
+j = 3;
+s_parzen = s_parzen(j);
+n = 1;
+
+%h = @(x,X,s,n) (2*pi*s^2)^(-n/2)*exp(-1/(2*s^2)*(norm2(X, x).^2)); 
+%||x-x'||^2 = (X-x).^2 ty x skalär. 
+%parzen = @(x, X, s, d) mean(h(x,X,s,d));
+
+clf;
+do_pause = 0;
+X1 = X1_small; X2 = X2_small;
+%X1 = X1_big; X2 = X2_big;
+
+lower_limit = min(min(min(X1)),min(min(X2)));
+upper_limit = max(max(max(X2)),max(max(X2)));
+X = X1;
+[X1_parzen, x_plot] = parzenMatrix(X,s_parzen,n,1/4, lower_limit, upper_limit);
+if do_pause
+    pause;
+end
+X = X2;
+[X2_parzen, x_plot] = parzenMatrix(X,s_parzen,n,1/2, lower_limit, upper_limit);
+if do_pause
+    pause;
+end
+X_sum = (X1_parzen+X2_parzen)/2;
+plotMatrix(X_sum, x_plot);
+% nbr_plots = size(X_sum,2);
+% for i = 1:nbr_plots
+%     subplot(nbr_plots, 1, i);
+%     plot(x_plot, X_sum(:,i));
+% end
+if do_pause
+    pause;
+end
+py1 = 0.5; py2 = 0.5;
+Y1 = (X1_parzen)*py1./X_sum;
+Y2 = (X2_parzen)*py2./X_sum;
+plotMatrix(Y1, x_plot, 'o');
+if do_pause
+    pause;
+end
+plotMatrix(Y2, x_plot);
+if do_pause
+    pause;
+end
+j = 2;
+x_regions = plugInXRegions(Y1(:,j), x_plot);
+x_test = X1_big(:,j);
+error = 0;
+for i = 1:length(x_test)
+    class = classify(x_test(i), x_regions);
+    if class == -1
+        error = error + (class==-1);
+    end
+end
+x_test = X2_big(:,j);
+for i = 1:length(x_test)
+    class = classify(x_test(i), x_regions);
+    if class == 1
+        error = error + 1;
+    end
+end
+
+error
+% lower_limit = min(min(min(X1_small)),min(min(X2_small)));
+% upper_limit = max(max(max(X2_small)),max(max(X2_small)));
+% X = X1_big;
+% [X_parzen, x_plot] = parzenMatrix(X,s_parzen,n,1);
+% pause;
+% X = X2_big;
+% [X_parzen, x_plot] = parzenMatrix(X,s_parzen,n,1);

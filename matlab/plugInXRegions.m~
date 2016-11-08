@@ -1,0 +1,21 @@
+function x_regions = plugInXRegions(Y, x_plot)
+%PLUGINXREGIONS Hittar intervall där klassen är mest trolig
+% Y     - p(y|x)
+% x_plot- platser där Y har evaluerats.
+
+limit = 0.5;
+x_okay = (Y > limit);
+x_edges = [x_okay(1:end-1) - x_okay(2:end);
+x_edge_values = x_plot(x_edges);
+x_end = x_plot(x_edges>0);
+x_start = x_plot(x_edges<0);
+if(min(x_end) < min(x_start))
+    x_start = [-inf, x_start];
+end
+
+if(max(x_start) > max(x_end))
+    x_end = [x_end, inf];
+end
+
+end
+

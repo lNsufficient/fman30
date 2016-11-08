@@ -1,0 +1,16 @@
+function y_class = classify(x_test, x_regions)
+%CLASSIFY Summary of this function goes here
+%   Detailed explanation goes here
+
+x_start_index= find(x_regions<x_test, 1);
+x_end_index = find(x_regions>x_test, 1);
+
+
+if (x_start_collumn == 1)
+    y_class = 1;
+else
+    y_class = -1;
+end
+
+end
+
