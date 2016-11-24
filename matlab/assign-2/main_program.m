@@ -42,15 +42,10 @@ end
 end
 
 %% Perform sift
-i = 2;
+i = 8;
 i1 = X1{i};
 i2 = X2{i};
-figure(1)
-imagesc(i1)
-colormap('gray')
-figure(2) 
-imagesc(i2)
-colormap('gray')
+
 
 [k1, d1] = vl_sift(i1);
 [k2, d2] = vl_sift(i2);
@@ -59,6 +54,17 @@ colormap('gray')
 
 k1_m = k1(1:2,m(1,:));
 k2_m = k2(1:2,m(2,:));
+
+figure(1)
+imagesc(i1)
+colormap('gray')
+vl_plotsiftdescriptor(d1(:,m(1,:)), k1(:,m(1,:)));
+
+figure(2) 
+imagesc(i2)
+colormap('gray')
+vl_plotsiftdescriptor(d2(:,m(2,:)), k2(:,m(2,:)));
+
 %% Perform Ransac
 %RANSAC as described in lecture 8, FMAN20
 
@@ -68,11 +74,11 @@ n = 2; %nbr points/vectors requred to find R and t for rigid registration
 if coll == 1
     k = 6000;
     t_dist = 3;
-    d = nbr_matches*0.01;
+    d = max(nbr_matches*0.01,7);
 elseif coll == 2;
     k = 20000;
-    t_dist = 4;
-    d = nbr_matches*0.01;
+    t_dist = 8;
+    d = max(nbr_matches*0.01,4);
 end
 nbr_close_d = d;
 nbr_close_best = 0;
@@ -98,7 +104,7 @@ for test_nbr = 1:k
         k1_fit = k1_m(:,good_indices);
         k2_fit = k2_m(:,good_indices);
         [R_reg, t_reg, s_reg] = feval(registration_name,k1_fit, k2_fit);
-        [nbr_close, good_indices2] = test_performance(R_reg, t_reg, s_reg, k1_fit, k2_fit, t_dist);
+        [nbr_close, good_indices2] = test_performance(R_reg, t_reg, s_reg, k1_m, k2_m, t_dist);
         
         if nbr_close > nbr_close_best
             R_best = R_reg;
@@ -113,12 +119,12 @@ for test_nbr = 1:k
     end
 end
 %Final fit
-best_indices = good_indices2;
+%best_indices = good_indices2;
 k1_fit = k1_m(:,best_indices);
 k2_fit = k2_m(:,best_indices);
-%[R_best, t_best, s_best] = feval(registration_name, k1_fit, k2_fit);
+[R_best, t_best, s_best] = feval(registration_name, k1_fit, k2_fit);
 %R_best = R_reg; t_best = t_reg; s_best = s_reg;
-[~, best_indices] = test_performance(R_best, t_best,s_best, k1_fit, k2_fit, t_dist);
+[~, best_indices] = test_performance(R_best, t_best,s_best, k1_m, k2_m, t_dist);
 
 [theta, d] = get_data(R_best,t_best);
 str = sprintf('Angle: %3.1f degrees, norm of t: %2.1f and s: %1.2f', theta, d, s_best);
@@ -146,23 +152,46 @@ imref1 = imref2d(size(i1));
 imref2 = imref2d(size(i2));
 [i1_r, rout_1] = imwarp(i1, tform, 'OutputView', imref2);
 
-figure(3)
-imagesc(i2_r)
-colormap('gray');
+
+k2_fit_r = similarity_transformation(R',-R'*t/s,1/s, k2_fit)
+k1_fit_r = similarity_transformation(R, t, s, k1_fit);
+%pullback of sift koordinates:
+% im2Sift = zeros(size(i2));
+% for i = 1:length(k2_fit)
+%     im2Sift(round(k2_fit(2,i))',round(k2_fit(1,i))') = 1;
+% end    
+% sum(sum(im2Sift))
+% 
+% im2Sift_r = imwarp(im2Sift, tforminv, 'OutputView', imref1);
+% sum(sum(im2Sift_r))
+% %im2Sift_r(im2Sift_r > 0) = 1;
+% [im2Sift_y, im2Sift_x] = find(im2Sift_r > 0);
+
 
 % figure(3)
 % imagesc(i1_r)
 % colormap('gray');
 
-figure(4)
-imagesc(i1_r)
-colormap('gray');
 
-figure(5)
+figure(3)
+clf;
 imshowpair(i2_r, rout_2, i1, imref1)
+hold on;
+plot(k2_fit_r(1,:),k2_fit_r(2,:), 'bo')
+plot(k1_fit(1,:),k1_fit(2,:), 'kx')
 
-figure(6)
-imshowpair(i1_r, rout_1, i2, imref2)
+%%
+% figure(4)
+% imagesc(i2_r)
+% colormap('gray');
+% 
+% 
+% figure(5)
+% imagesc(i1_r)
+% colormap('gray');
+% 
+% figure(6)
+% imshowpair(i1_r, rout_1, i2, imref2)
 %i2_new = pullback(R_best, t_best, x_1, y_1, i2);
 %% Align %Denna är som matlabs imwarp('outputview') fast mycket långsammare
 % [X, Y] = meshgrid(1:x_1, 1:y_1);
