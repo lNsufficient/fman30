@@ -23,9 +23,9 @@ end
 %following is taken from benchmark_inl4 imageanalysis
 a = dir(d1String);
 if coll == 1
-    nbr = 29;
+    total_nbr_images = 29;
 elseif coll == 2
-    nbr = 12;
+    total_nbr_images = 12;
 end
 X1 = [];
 X2 = [];
@@ -44,13 +44,14 @@ for ii = 1:length(a)
         if coll == 1
             im2 = single(rgb2gray(im2));
         elseif coll == 2
-            %im2 = single(im2);
-            im2 = histeq(im2);
+            im2 = double(im2);
+            im2 = imcomplement(histeq(uint8(im2*255/max(max(im2)))));
+            %im2 = histeq(im2)*double(255/max(max(im2)));
             im2 = single(im2);
         end
         if isempty(X1)
-            X1 = cell(nbr,1);
-            X2 = cell(nbr,1);
+            X1 = cell(total_nbr_images,1);
+            X2 = cell(total_nbr_images,1);
         end
         X1{imagei} = imresize(im1,0.5);
         X2{imagei} = imresize(im2,0.5);

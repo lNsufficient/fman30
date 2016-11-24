@@ -12,6 +12,7 @@ else
 end
 
 coll = 2
+do_click = 0;
 if coll == 1
     registration_name = 'rigid_registration';
     registration_name = 'similarity_registration';
@@ -41,29 +42,43 @@ for i = 1:length(X1)
 end
 end
 
+
 %% Perform sift
-i = 8;
-i1 = X1{i};
-i2 = X2{i};
+i = 1;
+image_i = i;
+savestr = sprintf('coll%dimage%d',coll, i);
+i2 = X1{i};
+i1 = X2{i};
 
 
 [k1, d1] = vl_sift(i1);
 [k2, d2] = vl_sift(i2);
 
-[m, s] = vl_ubcmatch(d1,d2,1/0.77);
+if coll == 1
+    thresh = 1/0.77;
+elseif coll == 2
+    thresh = 1/0.77;
+end
+
+[m, s] = vl_ubcmatch(d1,d2,thresh);
 
 k1_m = k1(1:2,m(1,:));
 k2_m = k2(1:2,m(2,:));
 
 figure(1)
-imagesc(i1)
+imHandle1 = imagesc(i1);
 colormap('gray')
 vl_plotsiftdescriptor(d1(:,m(1,:)), k1(:,m(1,:)));
 
 figure(2) 
-imagesc(i2)
+imHandle2 = imagesc(i2);
 colormap('gray')
 vl_plotsiftdescriptor(d2(:,m(2,:)), k2(:,m(2,:)));
+%% Get manual T:
+if do_click
+n = 5;
+[x,y] = ginput(n)
+end
 
 %% Perform Ransac
 %RANSAC as described in lecture 8, FMAN20
@@ -76,9 +91,9 @@ if coll == 1
     t_dist = 3;
     d = max(nbr_matches*0.01,7);
 elseif coll == 2;
-    k = 20000;
-    t_dist = 8;
-    d = max(nbr_matches*0.01,4);
+    k = 30000;
+    t_dist = 4;%10
+    d = max(nbr_matches*0.01,3);
 end
 nbr_close_d = d;
 nbr_close_best = 0;
@@ -88,6 +103,7 @@ s_best = [];
 best_indices = [];
 good_indices = [];
 good_indices2 = [];
+best_max_dist = inf;
 
 test_ind = randi(nbr_matches,k,2);
 
@@ -104,12 +120,13 @@ for test_nbr = 1:k
         k1_fit = k1_m(:,good_indices);
         k2_fit = k2_m(:,good_indices);
         [R_reg, t_reg, s_reg] = feval(registration_name,k1_fit, k2_fit);
-        [nbr_close, good_indices2] = test_performance(R_reg, t_reg, s_reg, k1_m, k2_m, t_dist);
+        [nbr_close, good_indices2, max_dist] = test_performance(R_reg, t_reg, s_reg, k1_m, k2_m, t_dist);
         
-        if nbr_close > nbr_close_best
+        if (nbr_close >= nbr_close_best) && (max_dist<best_max_dist) && (abs(s_reg) > 1e-2)
             R_best = R_reg;
             t_best = t_reg;
             s_best = s_reg;
+            best_max_dist = max_dist;
             nbr_close_best = nbr_close;
             best_indices = good_indices2;
             disp('newBest');
@@ -132,6 +149,7 @@ disp(str)
 %% Pullback time
 % best_mean_X1 = mean(k1_m(:,best_indices),2);
 % best_mean_X2_r = mean(rigid_transformation(R_best,t_best,k2_m(:,best_indices)),2);
+%i2_new = pullback(R_best, t_best, x_1, y_1, i2);
 
 R = R_best;
 t = t_best;
@@ -148,6 +166,9 @@ tforminv = affine2d(Tinv);
 %i1_r = imwarp(i1, tform);
 imref1 = imref2d(size(i1));
 [i2_r, rout_2] = imwarp(i2, tforminv,'OutputView', imref1);
+%[i2_r, rout_2] = imwarp(i2, tform,'OutputView', imref1);
+
+
 
 imref2 = imref2d(size(i2));
 [i1_r, rout_1] = imwarp(i1, tform, 'OutputView', imref2);
@@ -180,6 +201,53 @@ hold on;
 plot(k2_fit_r(1,:),k2_fit_r(2,:), 'bo')
 plot(k1_fit(1,:),k1_fit(2,:), 'kx')
 
+figure(6)
+clf;
+imshowpair(i1_r, rout_1, i2, imref2)
+hold on;
+plot(k1_fit_r(1,:),k1_fit_r(2,:), 'bo')
+plot(k2_fit(1,:),k2_fit(2,:), 'kx')
+title(str)
+saveas(gcf,savestr,'epsc')
+
+%% Test the result
+%T_manual
+clickStr = sprintf('clickData%d.mat',coll);
+load(clickStr)
+x1_man =[X1_c(image_i,:);Y1_c(image_i,:)];
+x2_man =[X2_c(image_i,:);Y2_c(image_i,:)];
+[R_man, t_man, s_man] = feval(registration_name, x1_man, x2_man);
+T_man = [s_man*R_man', [0;0]; t_man' 1];
+tform_man= affine2d(T_man);
+x1_r_man = similarity_transformation(R_man,t_man,s_man,x1_man);
+x1_r_auto = similarity_transformation(R,t,s,x1_man);
+
+eps_man = x2_man - x1_r_man;
+eps_tot_man = 1/(length(eps_man)-1)*sum(sum(eps_man.^2));
+eps_auto = x2_man - x1_r_auto;
+eps_tot_auto = 1/(length(eps_man)-1)*sum(sum(eps_auto.^2));
+eps_tot_diff = eps_tot_auto-eps_tot_man;
+if eps_tot_diff <= t_dist
+    disp('Okay image registration');
+    I_c(image_i) = 1;
+else
+    I_c(image_i) = 0;
+end
+
+eps_c(image_i,:) = [eps_tot_man, eps_tot_auto, eps_tot_diff];
+imref2 = imref2d(size(i2));
+[i1_r_man, rout_1_man] = imwarp(i1, tform_man, 'OutputView', imref2);
+save(clickStr,'X1_c','Y1_c','X2_c','Y2_c','eps_c','I_c');
+
+figure(7)
+imshowpair(i1_r_man, rout_1_man, i2, imref2)
+hold on;
+plot(x1_r_man(1,:),x1_r_man(2,:), 'rx')
+plot(x2_man(1,:),x2_man(2,:), 'bo')
+title(str)
+
+
+
 %%
 % figure(4)
 % imagesc(i2_r)
@@ -190,9 +258,6 @@ plot(k1_fit(1,:),k1_fit(2,:), 'kx')
 % imagesc(i1_r)
 % colormap('gray');
 % 
-% figure(6)
-% imshowpair(i1_r, rout_1, i2, imref2)
-%i2_new = pullback(R_best, t_best, x_1, y_1, i2);
 %% Align %Denna är som matlabs imwarp('outputview') fast mycket långsammare
 % [X, Y] = meshgrid(1:x_1, 1:y_1);
 % X_r = imwarp(X, tform);

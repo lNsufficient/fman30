@@ -13,7 +13,7 @@ H = y_tilde*x_tilde'; %this is the same as \sum_i(y_i*x_i^T)
 
 [U, ~, V] = svd(H);
 R = U*diag([1 det(U*V')])*V';
-yRx_SUM = sum(sum(y.*(R*x_tilde)));
+yRx_SUM = sum(sum(y_tilde.*(R*x_tilde)));
 xx_SUM = sum(sum(x_tilde.^2));
 s = yRx_SUM/xx_SUM;
 
