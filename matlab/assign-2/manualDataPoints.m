@@ -11,7 +11,7 @@ else
     do_load = 0;
 end
 
-coll = 2
+coll = 1
 do_click = 0;
 if coll == 1
     registration_name = 'rigid_registration';
@@ -34,7 +34,7 @@ clickStr = sprintf('clickData%d.mat',coll)
 nbr_clicks = 5;
 load(clickStr);
 
-i = 1;
+i = 5;
 savestr = sprintf('coll%dimage%d',coll, i);
 i2 = X1{i};
 i1 = X2{i};

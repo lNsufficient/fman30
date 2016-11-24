@@ -15,7 +15,7 @@ coll = 2
 do_click = 0;
 if coll == 1
     registration_name = 'rigid_registration';
-    registration_name = 'similarity_registration';
+    %registration_name = 'similarity_registration';
 
 elseif coll == 2
     registration_name = 'similarity_registration';
@@ -41,10 +41,12 @@ for i = 1:length(X1)
     pause;
 end
 end
-
+%record_data = zeros(total_nbr_images, 2)
+%for i_all = 1:total_nbr_images
 
 %% Perform sift
-i = 1;
+%i = i_all;
+i = 6;
 image_i = i;
 savestr = sprintf('coll%dimage%d',coll, i);
 i2 = X1{i};
@@ -87,12 +89,12 @@ nbr_matches = length(m);
 n = 2; %nbr points/vectors requred to find R and t for rigid registration
 
 if coll == 1
-    k = 6000;
-    t_dist = 3;
+    k = 10000;
+    t_dist = 5;
     d = max(nbr_matches*0.01,7);
 elseif coll == 2;
     k = 30000;
-    t_dist = 4;%10
+    t_dist = 5;%10
     d = max(nbr_matches*0.01,3);
 end
 nbr_close_d = d;
@@ -146,6 +148,7 @@ k2_fit = k2_m(:,best_indices);
 [theta, d] = get_data(R_best,t_best);
 str = sprintf('Angle: %3.1f degrees, norm of t: %2.1f and s: %1.2f', theta, d, s_best);
 disp(str)
+record_data(i,:) = [theta, d, s_best]
 %% Pullback time
 % best_mean_X1 = mean(k1_m(:,best_indices),2);
 % best_mean_X2_r = mean(rigid_transformation(R_best,t_best,k2_m(:,best_indices)),2);
@@ -209,7 +212,7 @@ plot(k1_fit_r(1,:),k1_fit_r(2,:), 'bo')
 plot(k2_fit(1,:),k2_fit(2,:), 'kx')
 title(str)
 saveas(gcf,savestr,'epsc')
-
+%end
 %% Test the result
 %T_manual
 clickStr = sprintf('clickData%d.mat',coll);
@@ -244,7 +247,7 @@ imshowpair(i1_r_man, rout_1_man, i2, imref2)
 hold on;
 plot(x1_r_man(1,:),x1_r_man(2,:), 'rx')
 plot(x2_man(1,:),x2_man(2,:), 'bo')
-title(str)
+
 
 
 
