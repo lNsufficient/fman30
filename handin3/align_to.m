@@ -11,6 +11,5 @@ for i = 1:N
     x_new = [sRx(1,:) + t(1); sRx(2,:) + t(2)];
     X_new(:,i) = x_new(1,:)';
     Y_new(:,i) = x_new(2,:)';
-    s
 end
 
