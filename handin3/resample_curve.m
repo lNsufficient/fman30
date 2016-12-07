@@ -7,9 +7,8 @@ diffs = [coords(1:end-1) - coords(2:end); coords(end) - coords(1)];
 % diffs_y = [y(1:end-1) - y(2:end); y(end) - y(1)]
 dists = abs(diffs);
 
-cum_dists = cumsum(dists);
+cum_dists = [0; cumsum(dists)];
 tot_length = cum_dists(end);
-cum_dists = cum_dists - cum_dists(1);
 
 
 length_N = tot_length/N;

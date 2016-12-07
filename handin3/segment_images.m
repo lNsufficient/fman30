@@ -121,6 +121,8 @@ for i = 1:5
 end
 
 %% Plot the points
+X_sampled = {};
+Y_sampled = {};
 for i = 1:5
     X_p = X_points{i};
     Y_p = Y_points{i};
@@ -144,14 +146,85 @@ for i = 1:5
     %Calculate total distance for those points.
     N = 14;
     [x_sampled, y_sampled] = resample_curve(X_p_short, Y_p_short, N);
-    
-    clf;
-    imagesc(images_edges(:,:,i))
-    colormap('gray')
-    hold on;
-    plot(X_p_short(1), Y_p_short(1), 'og')
-    for j = 1:length(x_sampled)
-        plot(x_sampled(j), y_sampled(j), 'xr');
-        pause;
+    do_plot = 1;
+    if do_plot && ~show_nothing
+        clf;
+        imagesc(images_edges(:,:,i))
+        colormap('gray')
+        hold on;
+        plot(X_p_short(1), Y_p_short(1), 'og')
+        for j = 1:length(x_sampled)
+            plot(x_sampled(j), y_sampled(j), 'xr');
+            pause;
+        end
     end
+    X_samples{i} = x_sampled;
+    Y_samples{i} = y_sampled;
+end
+
+%% Do the thäng
+
+%% Find R,t,s,b
+%load the model: 
+load shapemodel;
+R_a = cell(5,1); t_a = R_a; s_a = R_a; b_a = R_a;
+nbr_vects = 6;
+P_x = P_X(:,1:nbr_vects);
+P_y = P_Y(:,1:nbr_vects);
+lambda = lambda(1:nbr_vects);
+
+for i = 1:5
+    xs = X_samples{i};
+    ys = Y_samples{i};
+    [x_al, y_al, R, t, s] = align_to(X_mean, Y_mean, xs, ys);
+    b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda); 
+    b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al);
+    %b = 0;
+    x_hat = X_mean + P_x*b;
+    y_hat = Y_mean + P_y*b;
+    if do_plot && ~show_nothing
+
+        clf;
+        plot_shape(x_al, y_al,x_hat, y_hat,1)
+        test_xy = similarity_transformation(R, t, s, [xs, ys]')';
+        hold on;
+        plot(test_xy(:,1), test_xy(:,2), 'og')
+    end
+    
+    %Save the parameters
+    R_a{i} = R;
+    t_a{i} = t;
+    s_a{i} = s;
+    b_a{i} = b;
+end
+%% Transform mean to picture using R, t, s, b
+for i = 1:5
+    [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
+    xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
+    
+    I = interesting_images(:,:,i);
+    clf;
+    imagesc(I);
+    colormap('gray')
+    hold on
+    plot(xy_transf(:,1), xy_transf(:,2),'or');
+    plot(X_samples{i}, Y_samples{i}, 'xg')
+    pause;
+
+    gauss = @(x,y,b) 1/(2*pi*b^2)*exp(-(x.^2+y.^2)/(2*b^2));
+    dxdygauss = @(x,y,b) x*y*(-2/(2*b^2)).^2.*gauss(x,y,b);
+    std = 3;
+    N = max(ceil(6*std)+1, 20);
+    [y, x] = ndgrid(-N:N,-N:N);
+    Gaussxy =  dxdygauss(x,y,std);
+    
+    Ig = conv2(I, Gaussxy, 'same');
+    
+    clf
+    imagesc(Ig)
+    colormap('gray') 
+        hold on
+    plot(xy_transf(:,1), xy_transf(:,2),'or');
+    plot(X_samples{i}, Y_samples{i}, 'xg')
+    pause;
 end

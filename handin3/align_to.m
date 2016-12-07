@@ -1,4 +1,4 @@
-function [X_new, Y_new] = align_to(X0, Y0, X, Y)
+function [X_new, Y_new, R, t, s] = align_to(X0, Y0, X, Y)
 %ALIGN_TO Returns X_new and Y_new, the result when each collumn in X and Y
 %is pairwise aligned to X0, Y0.
 N = size(X,2);
