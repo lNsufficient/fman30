@@ -40,9 +40,11 @@ end
 new_dists = abs(new_sum_length(1:end-1)- new_sum_length(2:end));
 
 coarse_dists = abs(points_N(1:end-1)-points_N(2:end));
+[x_new, y_new] = resample_curve(real(man_seg), imag(man_seg), 14);
 
 plot(man_seg,'r*')
 hold on;
 plot(points_N,'go')
 plot(man_seg(1),'bo')
+plot(x_new, y_new, 'g*')
 axis 'equal';

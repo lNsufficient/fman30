@@ -1,0 +1,20 @@
+%Frågor
+  - %Vad räknas som shape model? slide 14 i shape models slide?
+ - %Hur många modes är det rimligt att man använder?
+     -%har det att göra med storleken på egenvärdena?
+%Ser mina modes rimliga ut?
+%Äre okej att använda edge för att ta fram sina edges? Eller måste man 
+  %använda gradient osv?
+
+%Hur ska jag skaffa edge map?
+    %14 samples?
+    %hur får jag reda på startpunkt, för de måste väl passa? slide 6?
+     %At each landmark, find the closest
+     %edge point orthogonal to the contour, determine new pose(!) and shape
+     %parameters(!) and iterate until convergence.
+    %eller ska man hela tiden byta startpunkt med hjälp av slide 18?
+    
+% Discuss in particular and examine the dependence on
+% the number of principal modes (PROCENTUELL PÅVERKAN?) used in the shape 
+% model and how an optimal number of nodes (VAD ÄR NODES?) could be 
+% determined.

@@ -1,0 +1,30 @@
+function [x_s, y_s] = resample_curve(x, y, N)
+%RESAMPLE_CURVE resamples the curve to N points
+%   Does it by calculating curve length
+
+coords = x+y*i;
+diffs = [coords(1:end-1) - coords(2:end); coords(end) - coords(1)]
+% diffs_y = [y(1:end-1) - y(2:end); y(end) - y(1)]
+dists = abs(diffs)
+
+cum_dists = cumsum(dists);
+
+tot_length = cum_dists(end);
+length_N = tot_length/N;
+
+for i = 2:N
+    point_distances = cum_dists-(length_N*(i-1));
+    j_start = find(point_distances > 0, 1)-1;
+    
+    if j_start < 1;
+        disp('ERROR: j_start < 1');
+    end
+    current_distance = dists(j_start);
+    x = -point_distances(j_start)/current_distance;
+    points_N(i) = man_seg(j_start)*(1-x) + man_seg(j_start+1)*x;
+    %for testing purposes:
+    new_sum_length(i) = sum_length(j_start)+current_distance*x;
+end
+
+end
+

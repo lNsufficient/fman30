@@ -82,15 +82,14 @@ while RES(end)>TOL
 end
 X_mean_plot = [X_mean; X_mean(1)]; Y_mean_plot = [Y_mean; Y_mean(1)];
 
-if do_plot && ~show_nothing
-    figure(2);
-    clf;
-    %plot(X_mean_plot, Y_mean_plot, 'b')
-    plot_shape(X_mean, Y_mean);
-    hold on;
-    plot(Xc', Yc', 'o')
-    axis 'equal';
-end
+figure(2);
+clf;
+%plot(X_mean_plot, Y_mean_plot, 'b')
+plot_shape(X_mean, Y_mean);
+hold on;
+plot(Xc', Yc', 'o')
+axis 'equal';
+
 %%
 do_plot = 0;
 if do_plot && ~show_nothing
@@ -125,17 +124,22 @@ P = P(:,I);
 P_X = P(1:N, :);
 P_Y = P(N+1:2*N,:);
 
-if do_plot && ~show_nothing
-    figure(3)
-    %plot(lambda,'x');
+figure(3)
+%plot(lambda,'x');
 
-    limits = [0, numel(lambda), 0, 1.0001]
-    normed_lambda = lambda./sum(lambda);
-    hold on
-    plot(cumsum(normed_lambda), 'o')
-    axis(limits)
-end
+limits = [0, numel(lambda), 0, 1.0001]
+normed_lambda = lambda./sum(lambda);
+hold on
+plot(cumsum(normed_lambda), 'o')
+axis(limits)
 %% Plot the modes
+
+figure(4)
+clf;
+plot(X_mean_plot, Y_mean_plot, 'r')
+hold on;
+axis 'equal'
+
 
 P_X_plot = [P_X; P_X(1,:)];
 P_Y_plot = [P_Y; P_Y(1,:)];
@@ -155,24 +159,21 @@ y_lim = [min(min(modes_Y)), max(max(modes_Y))];
 
 limits = [x_lim, y_lim];
 
-show_nothing = 1; 
-do_plot = 1;
-if do_plot && ~show_nothing
-    for i = 1:k
-        figure(4);
-        clf;
-        plot_shape(X_mean, Y_mean, modes_X(:,i), modes_Y(:,i), 1, 1);
-        axis(limits)
-        pause;
-    %     plot(X_mean_plot, Y_mean_plot, ':b')
-    %     hold on;
-    %     plot(X_mean_plot + a*P_X_plot(:,i), Y_mean_plot + a*P_Y_plot(:,i),'r');
-    %     %axis 'equal'
 
-    %     pause;
-    end
-    hold off;
+for i = 1:k
+    figure(4);
+    clf;
+    plot_shape(X_mean, Y_mean, modes_X(:,i), modes_Y(:,i), 1, 1);
+    axis(limits)
+    pause;
+%     plot(X_mean_plot, Y_mean_plot, ':b')
+%     hold on;
+%     plot(X_mean_plot + a*P_X_plot(:,i), Y_mean_plot + a*P_Y_plot(:,i),'r');
+%     %axis 'equal'
+
+%     pause;
 end
+hold off;
 
 %% Save the model
 save('shapemodel.mat', 'P_X', 'P_Y', 'lambda', 'X_mean', 'Y_mean')
