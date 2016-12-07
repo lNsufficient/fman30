@@ -1,4 +1,5 @@
-%% Section 5 
+%% SHAPE MODEL
+%% Section 5
 % A lot of code taken from main_dmsa
 clear
 
@@ -16,7 +17,7 @@ Xcoord=real(models);
 Ycoord=imag(models);
 N = size(Xcoord,1);
 
-%% Align the training data
+%% Align everything
 
 %1. Align each shape to the first:
 X_first = Xcoord(:,1);
@@ -106,7 +107,7 @@ if do_plot
         pause;
     end
 end
-%% Get the model
+%% Get the model data
 M = size(Xc,2);
 oneX = ones(1,M);
 dx = Xc - X_mean*oneX;
@@ -170,4 +171,4 @@ end
 hold off;
 
 %% Save the model
-save('shapemodel.mat', 'P_X', 'P_Y', 'X_mean', 'Y_mean')
+save('shapemodel.mat', 'P_X', 'P_Y', 'lambda', 'X_mean', 'Y_mean')
