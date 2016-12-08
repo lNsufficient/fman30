@@ -199,35 +199,13 @@ for i = 1:5
 end
 %% Transform mean to picture using R, t, s, b and create edgmap to compare with
 XY_transf = cell(5,1);
+
 for i = 1:5
     [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
     xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
-    
-    I = interesting_images(:,:,i);
-    
-
-    gauss = @(x,y,b) 1/(2*pi*b^2)*exp(-(x.^2+y.^2)/(2*b^2));
-    %dxdygauss = @(x,y,b) ((x.^2+y.^2 -2*b*ones(size(x)))/(b^2))
-    dxdygauss = @(x,y,b) ((x.^2+y.^2 -2*b*ones(size(x)))/(b^2)).*gauss(x,y,b);
-    dygauss = @(x,y,b) (y)/(b^2).*gauss(x,y,b);
-    dxgauss = @(x,y,b) (x)/(b^2).*gauss(x,y,b);
-    %dxdygauss = @(x,y,b) ((x*(-2/(2*b^2))).^2 + (y*(-2/(2*b^2))).^2 -4/(2*b^2))*gauss(x,y,b);
-    std = 1;
-    N = max(ceil(6*std)+1, 20); N = 10;
-    [y, x] = ndgrid(-N:N,-N:N);
-    Gaussy =  dygauss(x,y,std);
-    Gaussx =  dxgauss(x,y,std);
-    
-%     I = [zeros(500,500)];
-%     I(250:255,:) = 255;
-    Igy = conv2(I, Gaussy, 'same');
-    Igx = conv2(I, Gaussx, 'same');
-     
-   
-    edgemaps(:,:,i) = (Igy.^2 + Igx.^2);
-    
-    edgemaps(:,:,i) = get_edgemap(I,1);
-    
+    I = interesting_images(:,:,i);   
+    edgemap = get_edgemap(I,1);
+    XY_transf{i} = xy_transf;
     do_plot = 1;
     if do_plot && ~show_nothing
         clf;
@@ -237,42 +215,71 @@ for i = 1:5
         plot(xy_transf(:,1), xy_transf(:,2),'or');
         plot(X_samples{i}, Y_samples{i}, 'xg')
         pause;
-        imagesc(edgemaps(:,:,i));
+        imagesc(edgemap);
         colormap('gray') 
             hold on
         plot(xy_transf(:,1), xy_transf(:,2),'or');
         plot(X_samples{i}, Y_samples{i}, 'xg')
         pause;
     end
-    XY_transf{i} = xy_transf;
+
 end
 
 %% Find dx
+for i = 1:5
+    TOL = 0.1644;
+    std = 1;
+    std_fac = 0.99;
+    [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
+    db =0;
+    xy_res = inf;
+    xy_transf = XY_transf{i};
+    b = b_a{i};
+    while xy_res > TOL
+        b = b+db;
+        xy_old = xy_transf;
+               
+        std = std*std_fac;
+        edgemap = get_edgemap(interesting_images(:,:,i),std);
 
-i = 2;
-edgemap = edgemaps(:,:,i);
-xy_transf = XY_transf{i};
-dx = get_dx(edgemap, xy_transf);
-% for j = 1:length(X_samples{i})
-%     [search_start, search_path] = edgedirection(xy_transf, j);
-%     l = 3;
-%     x = linspace(-l,l);
-%     edge_line = [search_path(1)*x + search_start(1); search_path(2)*x + search_start(2)];
-%     line_vals = interp2(edgemap, edge_line(1,:), edge_line(2,:));
-%     [~, max_ind] = max(line_vals);
-%     dx(j,:) = edge_line(:,max_ind)' - xy_transf(j,:);
-%     
-% 
-% end
+        
+        dx = get_dx(edgemap, xy_transf);
+        xy_transf = xy_transf + dx;
+        [~, ~, R, t, s] = align_to(X_mean, Y_mean, xy_transf(:,1), xy_transf(:,2));
+        [R_inv, t_inv, s_inv] = similarity_inv(R, t, s);
+        
 
-do_plot = 1;
-show_nothing = 0;
-if do_plot && ~show_nothing
-    imagesc(edgemap)
-    colormap('gray');
+        x_hat = X_mean + P_x*(b);
+        y_hat = Y_mean + P_y*(b);
+        x_hat = X_mean; 
+        y_hat = Y_mean;
+        xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
+        dx = get_dx(edgemap, xy_transf);
+        
+        db = shape_parameter_db(P_x,P_y,dx,lambda);
+
+
+        xy_res = norm(xy_old - xy_transf,2);
+        
+        do_plot = 1;
+        show_nothing = 0;
+        if do_plot && ~show_nothing
+            clf
+            imagesc(edgemap)
+            colormap('gray');
+            hold on;
+            %plot(edge_line(1,:), edge_line(2,:), 'g')
+            plot(xy_transf(:,1), xy_transf(:,2), 'ro');
+            %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
+            plot(xy_transf(:,1)+dx(:,1), xy_transf(:,2) + dx(:,2),'g*');
+            pause;
+        end
+    end
+    clf
+    imagesc(interesting_images(:,:,i))
+    colormap('gray')
     hold on;
-    %plot(edge_line(1,:), edge_line(2,:), 'g')
     plot(xy_transf(:,1), xy_transf(:,2), 'ro');
-    %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
-    plot(xy_transf(:,1)+dx(:,1), xy_transf(:,2) + dx(:,2),'g*');
+    plot([xy_transf(:,1); xy_transf(1,1)], [xy_transf(:,2); xy_transf(1,2)], 'r');
+    pause;
 end
