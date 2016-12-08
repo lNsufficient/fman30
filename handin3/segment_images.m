@@ -225,8 +225,10 @@ for i = 1:5
      
    
     edgemaps(:,:,i) = (Igy.^2 + Igx.^2);
+    
+    edgemaps(:,:,i) = get_edgemap(I,1);
+    
     do_plot = 1;
-    show_nothing = 0;
     if do_plot && ~show_nothing
         clf;
         imagesc(I);
@@ -250,7 +252,27 @@ end
 i = 2;
 edgemap = edgemaps(:,:,i);
 xy_transf = XY_transf{i};
-for j = 1:length(X_samples{i})
-    [search_start, search_path] = edgedirection(xy_transf, j);
-    
+dx = get_dx(edgemap, xy_transf);
+% for j = 1:length(X_samples{i})
+%     [search_start, search_path] = edgedirection(xy_transf, j);
+%     l = 3;
+%     x = linspace(-l,l);
+%     edge_line = [search_path(1)*x + search_start(1); search_path(2)*x + search_start(2)];
+%     line_vals = interp2(edgemap, edge_line(1,:), edge_line(2,:));
+%     [~, max_ind] = max(line_vals);
+%     dx(j,:) = edge_line(:,max_ind)' - xy_transf(j,:);
+%     
+% 
+% end
+
+do_plot = 1;
+show_nothing = 0;
+if do_plot && ~show_nothing
+    imagesc(edgemap)
+    colormap('gray');
+    hold on;
+    %plot(edge_line(1,:), edge_line(2,:), 'g')
+    plot(xy_transf(:,1), xy_transf(:,2), 'ro');
+    %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
+    plot(xy_transf(:,1)+dx(:,1), xy_transf(:,2) + dx(:,2),'g*');
 end
