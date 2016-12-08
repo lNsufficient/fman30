@@ -227,7 +227,7 @@ end
 
 %% Find dx
 for i = 1:5
-    TOL = 0.05;
+    TOL = 0.01;
     std = 1;
     std_fac = 1;
     [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
@@ -247,11 +247,13 @@ for i = 1:5
         edgemap = get_edgemap(I,std);
         line_search = 'absmax';
     elseif strcmp(edge_method, 'gradient')
+        std = 8;
+        std_fac = 0.98;
         edgemap = imgradient(I,'prewitt');
         line_search = 'absmax';
     elseif strcmp(edge_method, 'laplacian')
         std = 8;
-        std_fac = 0.995;
+        std_fac = 0.9985;
         l = 1
         N = max(ceil(6*std)+1, 20);
         h1 = fspecial('gaussian', N, std);
@@ -264,8 +266,15 @@ for i = 1:5
         b = b+db;
         xy_old = xy_transf;
                
-        if strcmp(edge_method, 'laplacian')
+        
+        if strcmp(edge_method, 'gradient')
             std = std*std_fac;
+            h1 = fspecial('gaussian', N, std);
+            Ig = imfilter(I,h1);
+            edgemap = imgradient(Ig,'prewitt');
+        elseif strcmp(edge_method, 'laplacian')
+            std = std*std_fac;
+            std = max(std, 5);
             h1 = fspecial('gaussian', N, std);
             h2 = fspecial('laplacian'); 
             h3 = imfilter(h1, h2);
@@ -305,7 +314,7 @@ for i = 1:5
             plot(xy_transf(:,1), xy_transf(:,2), 'ro');
             %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
             plot(xy_transf(:,1)+dx(:,1), xy_transf(:,2) + dx(:,2),'g*');
-            pause(0.01);
+            pause(0.001);
         end
     end
     clf
@@ -316,5 +325,5 @@ for i = 1:5
     %plot([xy_transf(:,1)+dx(:,1); xy_transf(1,1)+dx(1,1)], [xy_transf(:,2) + dx(:,2); xy_transf(1,2) + dx(1,2)],'g');
     plot(xy_transf(:,1), xy_transf(:,2), 'ro');
     plot([xy_transf(:,1); xy_transf(1,1)], [xy_transf(:,2); xy_transf(1,2)], 'r');
-    pause(1);
+    pause;
 end
