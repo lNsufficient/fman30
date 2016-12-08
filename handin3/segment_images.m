@@ -197,34 +197,60 @@ for i = 1:5
     s_a{i} = s;
     b_a{i} = b;
 end
-%% Transform mean to picture using R, t, s, b
+%% Transform mean to picture using R, t, s, b and create edgmap to compare with
+XY_transf = cell(5,1);
 for i = 1:5
     [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
     xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
     
     I = interesting_images(:,:,i);
-    clf;
-    imagesc(I);
-    colormap('gray')
-    hold on
-    plot(xy_transf(:,1), xy_transf(:,2),'or');
-    plot(X_samples{i}, Y_samples{i}, 'xg')
-    pause;
+    
 
     gauss = @(x,y,b) 1/(2*pi*b^2)*exp(-(x.^2+y.^2)/(2*b^2));
-    dxdygauss = @(x,y,b) x*y*(-2/(2*b^2)).^2.*gauss(x,y,b);
-    std = 3;
-    N = max(ceil(6*std)+1, 20);
+    %dxdygauss = @(x,y,b) ((x.^2+y.^2 -2*b*ones(size(x)))/(b^2))
+    dxdygauss = @(x,y,b) ((x.^2+y.^2 -2*b*ones(size(x)))/(b^2)).*gauss(x,y,b);
+    dygauss = @(x,y,b) (y)/(b^2).*gauss(x,y,b);
+    dxgauss = @(x,y,b) (x)/(b^2).*gauss(x,y,b);
+    %dxdygauss = @(x,y,b) ((x*(-2/(2*b^2))).^2 + (y*(-2/(2*b^2))).^2 -4/(2*b^2))*gauss(x,y,b);
+    std = 1;
+    N = max(ceil(6*std)+1, 20); N = 10;
     [y, x] = ndgrid(-N:N,-N:N);
-    Gaussxy =  dxdygauss(x,y,std);
+    Gaussy =  dygauss(x,y,std);
+    Gaussx =  dxgauss(x,y,std);
     
-    Ig = conv2(I, Gaussxy, 'same');
-    
-    clf
-    imagesc(Ig)
-    colormap('gray') 
+%     I = [zeros(500,500)];
+%     I(250:255,:) = 255;
+    Igy = conv2(I, Gaussy, 'same');
+    Igx = conv2(I, Gaussx, 'same');
+     
+   
+    edgemaps(:,:,i) = (Igy.^2 + Igx.^2);
+    do_plot = 1;
+    show_nothing = 0;
+    if do_plot && ~show_nothing
+        clf;
+        imagesc(I);
+        colormap('gray')
         hold on
-    plot(xy_transf(:,1), xy_transf(:,2),'or');
-    plot(X_samples{i}, Y_samples{i}, 'xg')
-    pause;
+        plot(xy_transf(:,1), xy_transf(:,2),'or');
+        plot(X_samples{i}, Y_samples{i}, 'xg')
+        pause;
+        imagesc(edgemaps(:,:,i));
+        colormap('gray') 
+            hold on
+        plot(xy_transf(:,1), xy_transf(:,2),'or');
+        plot(X_samples{i}, Y_samples{i}, 'xg')
+        pause;
+    end
+    XY_transf{i} = xy_transf;
+end
+
+%% Find dx
+
+i = 2;
+edgemap = edgemaps(:,:,i);
+xy_transf = XY_transf{i};
+for j = 1:length(X_samples{i})
+    [search_start, search_path] = edgedirection(xy_transf, j);
+    
 end
