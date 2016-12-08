@@ -168,7 +168,7 @@ end
 %load the model: 
 load shapemodel;
 R_a = cell(5,1); t_a = R_a; s_a = R_a; b_a = R_a;
-nbr_vects = 5;
+nbr_vects = 3;
 P_x = P_X(:,1:nbr_vects);
 P_y = P_Y(:,1:nbr_vects);
 lambda = lambda(1:nbr_vects);
@@ -227,7 +227,7 @@ end
 
 %% Find dx
 for i = 1:5
-    TOL = 0.01;
+    TOL = 0.05;
     std = 1;
     std_fac = 1;
     [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
@@ -237,28 +237,26 @@ for i = 1:5
     b = b_a{i};
     l = 4
     I = interesting_images(:,:,i);
-    restrict_b = 1; %making sure that abs(b) < sqrt(3)*lambda
+    
     
     edge_method = 'gradient';
     %edge_method = 'own';
-    edge_method = 'laplacian';
+    %edge_method = 'laplacian';
     
     if strcmp(edge_method, 'own')
         edgemap = get_edgemap(I,std);
         line_search = 'absmax';
     elseif strcmp(edge_method, 'gradient')
-        TOL = 0.02;
         std = 8;
-        std_final = 0.8;
-        std_fac = 0.99;
+        std_fac = 0.98;
+        std_final = 1;
         edgemap = imgradient(I,'prewitt');
         line_search = 'absmax';
     elseif strcmp(edge_method, 'laplacian')
-        std_final = 1.8;
-        std_final = 6;
-        std = 11;
-        std_fac = 0.99;
-        l =3
+        std = 4;
+        std_fac = 0.996;
+        std_final = 5  
+        l = 0.2
         N = max(ceil(6*std)+1, 20);
         h1 = fspecial('gaussian', N, std);
         h2 = fspecial('laplacian'); 
@@ -266,17 +264,14 @@ for i = 1:5
         edgemap = imfilter(I,h3);
         line_search = 'absmin';
     end
-    
-    
-    
-    while  std > std_final %xy_res > TOL ||
-        %b = b+db;
+    while xy_res > TOL
+        b = b+db;
         xy_old = xy_transf;
                
         
         if strcmp(edge_method, 'gradient')
             std = std*std_fac;
-            std = max(std, 0.5);
+            std = max(std, std_final);
             h1 = fspecial('gaussian', N, std);
             Ig = imfilter(I,h1);
             edgemap = imgradient(Ig,'prewitt');
@@ -287,7 +282,6 @@ for i = 1:5
             h2 = fspecial('laplacian'); 
             h3 = imfilter(h1, h2);
             edgemap = imfilter(I,h3);
-            edgemap = abs(edgemap);
         end
 
         %edgemap = edge(interesting_images(:,:,i)); edgemap = single(edgemap);
@@ -300,42 +294,31 @@ for i = 1:5
         [R_inv, t_inv, s_inv] = similarity_inv(R, t, s);
         
 
-%         x_hat = X_mean + P_x*(b);
-%         y_hat = Y_mean + P_y*(b);
-%         x_hat = X_mean; 
-%         y_hat = Y_mean;
-%         xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
-%         dx = get_dx(edgemap, xy_transf, l, line_search);
-%         
-%         dx_hat = similarity_transformation(R,t,s,dx')';
-%         if restrict_b
-%             db = shape_parameter_db(P_x,P_y,dx_hat,lambda, b);
-%         else
-%             db = shape_parameter_db(P_x,P_y,dx_hat);
-%         end
-%         
-        b = shape_parameter(P_x, P_y, X_mean, Y_mean, xy_transf(:,1), xy_transf(:,2)); db = 0;
-        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al); db = 0;
-        %xy_transf(:,1) = xy_transf(:,1) +P_x*(b+db); 
-        %xy_transf(:,2) = xy_transf(:,2) +P_y*(b+db); 
-        xy_hat(:,1) = X_mean +P_x*b; 
-        xy_hat(:,2) = Y_mean +P_y*b;
-        xy_transf = similarity_transformation(R_inv,t_inv,s_inv,xy_hat')';
+        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda);
+        %b = 0;
+        x_hat = X_mean + P_x*b;
+        y_hat = Y_mean + P_y*b;
+        %x_hat = X_mean; 
+        %y_hat = Y_mean;
+        xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
+        dx = get_dx(edgemap, xy_transf, l, line_search);
         
+        db = shape_parameter_db(P_x,P_y,dx,lambda, b); db = 0;
+
+
         xy_res = norm(xy_old - xy_transf,2);
         
         do_plot = 1;
         show_nothing = 0;
         if do_plot && ~show_nothing
             clf
-            imagesc(edgemap)
+            imagesc(abs(edgemap))
             colormap('gray');
             hold on;
             %plot(edge_line(1,:), edge_line(2,:), 'g')
             plot(xy_transf(:,1), xy_transf(:,2), 'ro');
             %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
-            plot(xy_old(:,1)+dx(:,1), xy_old(:,2) + dx(:,2),'g*');
-            plot(xy_old(:,1), xy_old(:,2),'y*');
+            plot(xy_transf(:,1)+dx(:,1), xy_transf(:,2) + dx(:,2),'g*');
             pause;
         end
     end
@@ -347,5 +330,6 @@ for i = 1:5
     %plot([xy_transf(:,1)+dx(:,1); xy_transf(1,1)+dx(1,1)], [xy_transf(:,2) + dx(:,2); xy_transf(1,2) + dx(1,2)],'g');
     plot(xy_transf(:,1), xy_transf(:,2), 'ro');
     plot([xy_transf(:,1); xy_transf(1,1)], [xy_transf(:,2); xy_transf(1,2)], 'r');
+    pause(1);
     pause;
 end

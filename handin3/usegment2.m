@@ -168,10 +168,11 @@ end
 %load the model: 
 load shapemodel;
 R_a = cell(5,1); t_a = R_a; s_a = R_a; b_a = R_a;
-nbr_vects = 5;
+nbr_vects = 2;
 P_x = P_X(:,1:nbr_vects);
 P_y = P_Y(:,1:nbr_vects);
 lambda = lambda(1:nbr_vects);
+lambda = lambda./sum(lambda);
 
 for i = 1:5
     xs = X_samples{i};
@@ -226,7 +227,7 @@ for i = 1:5
 end
 
 %% Find dx
-for i = 1:5
+for i =3:5
     TOL = 0.01;
     std = 1;
     std_fac = 1;
@@ -241,7 +242,7 @@ for i = 1:5
     
     edge_method = 'gradient';
     %edge_method = 'own';
-    edge_method = 'laplacian';
+    %edge_method = 'laplacian';
     
     if strcmp(edge_method, 'own')
         edgemap = get_edgemap(I,std);
@@ -269,7 +270,7 @@ for i = 1:5
     
     
     
-    while  std > std_final %xy_res > TOL ||
+    while  1 % std > std_final %xy_res > TOL ||
         %b = b+db;
         xy_old = xy_transf;
                
@@ -292,36 +293,18 @@ for i = 1:5
 
         %edgemap = edge(interesting_images(:,:,i)); edgemap = single(edgemap);
 
-
-        
-        dx = get_dx(edgemap, xy_transf, l, line_search);
-        xy_transf = xy_transf + dx;
-        [x_al, y_al, R, t, s] = align_to(X_mean, Y_mean, xy_transf(:,1), xy_transf(:,2));
+        [~, ~, R, t, s] = align_to(xy_transf(:,1), xy_transf(:,2), X_mean, Y_mean);
         [R_inv, t_inv, s_inv] = similarity_inv(R, t, s);
+        x_hat = similarity_transformation(R_inv,t_inv, s_inv, xy_transf')';
+        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_hat(:,1), x_hat(:,2), lambda);
+        x_tilde = X_mean + P_x*(b);
+        y_tilde = Y_mean + P_y*(b);
+        xy_tilde = [x_tilde, y_tilde];
+        xy_transf = similarity_transformation(R,t,s,xy_tilde')';
+        dx = get_dx(edgemap, xy_transf, l, line_search);
         
-
-%         x_hat = X_mean + P_x*(b);
-%         y_hat = Y_mean + P_y*(b);
-%         x_hat = X_mean; 
-%         y_hat = Y_mean;
-%         xy_transf = similarity_transformation(R_inv,t_inv,s_inv,[x_hat, y_hat]')';
-%         dx = get_dx(edgemap, xy_transf, l, line_search);
-%         
-%         dx_hat = similarity_transformation(R,t,s,dx')';
-%         if restrict_b
-%             db = shape_parameter_db(P_x,P_y,dx_hat,lambda, b);
-%         else
-%             db = shape_parameter_db(P_x,P_y,dx_hat);
-%         end
-%         
-        b = shape_parameter(P_x, P_y, X_mean, Y_mean, xy_transf(:,1), xy_transf(:,2)); db = 0;
-        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al); db = 0;
-        %xy_transf(:,1) = xy_transf(:,1) +P_x*(b+db); 
-        %xy_transf(:,2) = xy_transf(:,2) +P_y*(b+db); 
-        xy_hat(:,1) = X_mean +P_x*b; 
-        xy_hat(:,2) = Y_mean +P_y*b;
-        xy_transf = similarity_transformation(R_inv,t_inv,s_inv,xy_hat')';
-        
+        xy_old = xy_transf;
+        xy_transf = xy_transf + dx;
         xy_res = norm(xy_old - xy_transf,2);
         
         do_plot = 1;
@@ -332,12 +315,14 @@ for i = 1:5
             colormap('gray');
             hold on;
             %plot(edge_line(1,:), edge_line(2,:), 'g')
-            plot(xy_transf(:,1), xy_transf(:,2), 'ro');
+            plot(xy_transf(:,1), xy_transf(:,2), 'g*');
             %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
-            plot(xy_old(:,1)+dx(:,1), xy_old(:,2) + dx(:,2),'g*');
-            plot(xy_old(:,1), xy_old(:,2),'y*');
+            plot(xy_old(:,1), xy_old(:,2),'ro');
             pause;
         end
+       
+    
+ 
     end
     clf
     imagesc(I)
