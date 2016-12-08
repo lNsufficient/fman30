@@ -295,7 +295,7 @@ for i = 1:5
         
 
         b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda);
-        %b = 0;
+        b = zeros(size(P_x,2),1);
         x_hat = X_mean + P_x*b;
         y_hat = Y_mean + P_y*b;
         %x_hat = X_mean; 
