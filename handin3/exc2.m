@@ -125,15 +125,32 @@ P = P(:,I);
 P_X = P(1:N, :);
 P_Y = P(N+1:2*N,:);
 
+do_plot = 1; show_nothing = 0
 if do_plot && ~show_nothing
     figure(3)
+    
+    clf
     %plot(lambda,'x');
-
-    limits = [0, numel(lambda), 0, 1.0001]
+    subplot(2,1,1)
+    plot(lambda, 'x')
+    hold on 
+    plot([0, numel(lambda)+1], [1,1], 'r')
+    limits = [0, numel(lambda)+1, 0, 10]
+    axis(limits)
+    title('Lambda')
+    legend('lambda', '1')
+    subplot(2,1,2)
+    limits = [0, numel(lambda)+1, 0, 1.0001]
     normed_lambda = lambda./sum(lambda);
     hold on
-    plot(cumsum(normed_lambda), 'o')
+    cumsum_lambda = cumsum(normed_lambda);
+    plot(cumsum_lambda, 'x')
+
+    plot([0, numel(lambda)+1], [cumsum_lambda(7), cumsum_lambda(7)],'r')
+    plot([0, numel(lambda)+1], [0.8, 0.8],'b')
     axis(limits)
+    legend('Lambda', 'Lambda > 1', 'cumsum = 0.8')
+    title('Kumulativ summa normerad lambda')
 end
 %% Plot the modes
 
