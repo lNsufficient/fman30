@@ -178,7 +178,7 @@ for i = 1:5
     ys = Y_samples{i};
     [x_al, y_al, R, t, s] = align_to(X_mean, Y_mean, xs, ys);
     b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda); 
-    b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al);
+%    b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al);
     %b = 0;
     x_hat = X_mean + P_x*b;
     y_hat = Y_mean + P_y*b;
@@ -226,7 +226,7 @@ for i = 1:5
 end
 
 %% Find dx
-for i = 1:5
+for i = 4:5
     TOL = 0.05;
     std = 1;
     std_fac = 1;
@@ -295,7 +295,7 @@ for i = 1:5
         
 
         b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda);
-        b = zeros(size(P_x,2),1);
+       % b = zeros(size(P_x,2),1);
         x_hat = X_mean + P_x*b;
         y_hat = Y_mean + P_y*b;
         %x_hat = X_mean; 

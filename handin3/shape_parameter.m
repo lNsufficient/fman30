@@ -16,9 +16,13 @@ else
     use_lambda = 0;
 end
 b = P'*(dx);
+lambda_t = 3*sqrt(abs(min(lambda)));
     if or(nargin > 6, use_lambda)
-        big_b = abs(b) > 3*sqrt(abs(lambda));
-        b(big_b) = sign(b(big_b)).*lambda(big_b);
+%         big_b = abs(b) > 3*sqrt(abs(lambda));
+%         b(big_b) = sign(b(big_b)).*lambda(big_b);
+        big_b = abs(b) > lambda_t;
+        b(big_b) = sign(b(big_b))*lambda_t;
+
     end
 end
 

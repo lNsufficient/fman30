@@ -168,7 +168,7 @@ end
 %load the model: 
 load shapemodel;
 R_a = cell(5,1); t_a = R_a; s_a = R_a; b_a = R_a;
-nbr_vects = 5;
+nbr_vects = 28;
 P_x = P_X(:,1:nbr_vects);
 P_y = P_Y(:,1:nbr_vects);
 lambda = lambda(1:nbr_vects);
@@ -178,7 +178,7 @@ for i = 1:5
     ys = Y_samples{i};
     [x_al, y_al, R, t, s] = align_to(X_mean, Y_mean, xs, ys);
     b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda); 
-    b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al);
+%    b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al);
     %b = 0;
     x_hat = X_mean + P_x*b;
     y_hat = Y_mean + P_y*b;
@@ -227,7 +227,7 @@ end
 
 %% Find dx
 for i = 1:5
-    TOL = 0.01;
+    TOL = 0.04;
     std = 1;
     std_fac = 1;
     [R_inv, t_inv, s_inv] = similarity_inv(R_a{i}, t_a{i}, s_a{i});
@@ -269,7 +269,7 @@ for i = 1:5
     
     
     
-    while  std > std_final %xy_res > TOL ||
+    while  xy_res > TOL || std > std_final 
         %b = b+db;
         xy_old = xy_transf;
                
@@ -314,8 +314,9 @@ for i = 1:5
 %             db = shape_parameter_db(P_x,P_y,dx_hat);
 %         end
 %         
-        b = shape_parameter(P_x, P_y, X_mean, Y_mean, xy_transf(:,1), xy_transf(:,2)); db = 0;
-        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al); db = 0;
+%        b = shape_parameter(P_x, P_y, X_mean, Y_mean, xy_transf(:,1), xy_transf(:,2)); db = 0;
+        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda*inf); db = 0;
+        b = shape_parameter(P_x, P_y, X_mean, Y_mean, x_al, y_al, lambda); db = 0;
         %xy_transf(:,1) = xy_transf(:,1) +P_x*(b+db); 
         %xy_transf(:,2) = xy_transf(:,2) +P_y*(b+db); 
         xy_hat(:,1) = X_mean +P_x*b; 
@@ -347,5 +348,6 @@ for i = 1:5
     %plot([xy_transf(:,1)+dx(:,1); xy_transf(1,1)+dx(1,1)], [xy_transf(:,2) + dx(:,2); xy_transf(1,2) + dx(1,2)],'g');
     plot(xy_transf(:,1), xy_transf(:,2), 'ro');
     plot([xy_transf(:,1); xy_transf(1,1)], [xy_transf(:,2); xy_transf(1,2)], 'r');
+    pause(1);
     pause;
 end
