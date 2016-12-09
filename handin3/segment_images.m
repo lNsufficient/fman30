@@ -168,7 +168,7 @@ end
 %load the model: 
 load shapemodel;
 R_a = cell(5,1); t_a = R_a; s_a = R_a; b_a = R_a;
-nbr_vects = 28;
+nbr_vects = 6;
 P_x = P_X(:,1:nbr_vects);
 P_y = P_Y(:,1:nbr_vects);
 lambda = lambda(1:nbr_vects);
@@ -226,7 +226,7 @@ for i = 1:5
 end
 
 %% Find dx
-for i = 1:5
+for i = 5:5
     TOL = 0.04;
     std = 1;
     std_fac = 1;
@@ -251,6 +251,7 @@ for i = 1:5
         std = 8;
         std_final = 0.8;
         std_fac = 0.99;
+        l = 0.5;
         edgemap = imgradient(I,'prewitt');
         line_search = 'absmax';
     elseif strcmp(edge_method, 'laplacian')
@@ -337,7 +338,7 @@ for i = 1:5
             %plot(edge_line(1,max_ind), edge_line(2,max_ind),'g*');
             plot(xy_old(:,1)+dx(:,1), xy_old(:,2) + dx(:,2),'g*');
             plot(xy_old(:,1), xy_old(:,2),'y*');
-            pause;
+            pause(0.0001);
         end
     end
     clf
