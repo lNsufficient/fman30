@@ -229,13 +229,13 @@ t(i).name = 'SliceThickness';         t(i).groupnumber = '0018'; t(i).elementnum
 i = i+1;
 
 %VR: DS
-t(i).name = 'SpacingBetweenSlices';         t(i).groupnumber = '0018'; t(i).elementnumber = '0088'; t(i).type = 'char';   t(i).default=[];
+t(i).name = 'SpacingBetweenSlices';         t(i).groupnumber = '0018'; t(i).elementnumber = '0088'; t(i).type = 'char';   t(i).default='0';
 i = i+1;
 
-% t(i).name = '';         t(i).groupnumber = ''; t(i).elementnumber = ''; t(i).type = '';   t(i).default=;
-% i = i+1;
-% 
-% t(i).name = '';         t(i).groupnumber = ''; t(i).elementnumber = ''; t(i).type = '';   t(i).default=;
+t(i).name = 'ImageOrientationPatient';         t(i).groupnumber = '0020'; t(i).elementnumber = '0037'; t(i).type = 'char';   t(i).default=[];
+ i = i+1;
+ 
+ t(i).name = 'ImagePosition';         t(i).groupnumber = '0020'; t(i).elementnumber = '0032'; t(i).type = 'char';   t(i).default=[];
 % i = i+1;
 
 % t(i).name = '';         t(i).groupnumber = ''; t(i).elementnumber = ''; t(i).type = '';   t(i).default=;
@@ -385,6 +385,6 @@ end;
 function debugprint(s,varargin)
 %------------------------------
 
-if true %change to false to avoid messages
+if false %change to false to avoid messages
   disp(sprintf(s,varargin{:})); %#ok<DSPS>
 end;

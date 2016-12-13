@@ -46,3 +46,6 @@ for i = 1:N
     im(:,:,i) = im_t;
 end
 info = first_info;
+first_imPos = str2double(strsplit(first_info.ImagePosition, '\'));
+last_imPos = str2double(strsplit(in.ImagePosition, '\'));
+info.SlicePositionDifferences = last_imPos - first_imPos;
