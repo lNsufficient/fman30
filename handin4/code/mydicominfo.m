@@ -183,7 +183,7 @@ t= [];
 t(1).name = 'TransferSyntaxUID';    t(1).groupnumber = '0002'; t(1).elementnumber = '0010'; t(1).type = 'char';   t(1).default = '1.2.840.10008.1.2.1.';
 t(2).name = 'StartOfPixelData';     t(2).groupnumber = '7fe0'; t(2).elementnumber = '0010'; t(2).type = 'uint16'; t(2).default = [];
 t(3).name = 'BitsAllocated';        t(3).groupnumber = '0028'; t(3).elementnumber = '0100'; t(3).type = 'uint16'; t(3).default=0;
-t(4).name = 'RescaleSlope';         t(4).groupnumber = '0028'; t(4).elementnumber = '1053'; t(4).type = 'char';   t(4).default=1;
+t(4).name = 'RescaleSlope';         t(4).groupnumber = '0028'; t(4).elementnumber = '1053'; t(4).type = 'char';   t(4).default='1';
   
 %%% Add more tags here that you will require %%%
 %Implementerade enligt: 
@@ -200,6 +200,8 @@ t(4).name = 'RescaleSlope';         t(4).groupnumber = '0028'; t(4).elementnumbe
 %RescaleSlope - DS
 %De som var US j√§mf√∂rdes med typen p√• BitsAllocated, de som var DS
 %j√§mf√∂rdes med RescaleSlope. 
+%OBS! Jag ‰ndrade i RescaleSlope frÂn 1, till '1' pÂ default value, annars
+%funkade inte str2double. 
 
 %VR: US
 i = 5;
@@ -219,7 +221,7 @@ t(i).name = 'BitsStored';         t(i).groupnumber = '0028'; t(i).elementnumber 
 i = i+1;
 
 %VR: DS
-t(i).name = 'RescaleIntercept';         t(i).groupnumber = '0028'; t(i).elementnumber = '1052'; t(i).type = 'char';   t(i).default=[];
+t(i).name = 'RescaleIntercept';         t(i).groupnumber = '0028'; t(i).elementnumber = '1052'; t(i).type = 'char';   t(i).default='0';
 i = i+1;
 
 %VR: DS

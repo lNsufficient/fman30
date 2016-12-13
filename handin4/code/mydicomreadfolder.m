@@ -32,3 +32,17 @@ end;
 disp(sprintf('Reading the folder %s.',foldername)); %#ok<DSPS>
 
 %--- From now on it is up to you :-)
+f = dir([foldername filesep '*.dcm'])
+first_file = sprintf('%s/%s',foldername, f(1).name);
+first_info = mydicominfo(first_file);
+rows = first_info.Rows;
+cols = first_info.Columns;
+N = length(f);
+im = zeros(rows, cols, N);
+for i = 1:N
+    waitbar(i/N);
+    current_file = sprintf('%s/%s', foldername, f(i).name);
+    [in, im_t] = mydicomread(current_file);
+    im(:,:,i) = im_t;
+end
+info = first_info;

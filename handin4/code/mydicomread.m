@@ -52,5 +52,5 @@ im = transpose(im);
 % Here I got the explaination as to what this means:
 %http://stackoverflow.com/questions/8756096/window-width-and-center-calculation-of-dicom-image/8765366#8765366
 
-im = im*str2double(info.RescaleSlope) + str2double(info.RescaleIntercept);
+im = im*str2double(info.RescaleSlope(:)) + str2double(info.RescaleIntercept);
 %im = (im- str2double(info.RescaleIntercept))/str2double(info.RescaleSlope);
