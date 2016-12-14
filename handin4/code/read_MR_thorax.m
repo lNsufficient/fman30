@@ -3,6 +3,8 @@ foldername = '../images/MR-thorax-transversal';
 [im, info] = mydicomreadfolder(foldername);
 
 imshow3D(im)
+
+%%
 %pixSpace beskriver physical distance in patient between center of each
 %voxel in mm. 
 pixSpace = str2double(strsplit(info.PixelSpacing, '\'));
@@ -12,10 +14,10 @@ x = (1:size(im, 2))*pixSpace(1); %2 eftersom att kolumner svarar mot sidled
 y = (1:size(im, 1))*pixSpace(2); %1 eftersom rader svarar mot y.
 z = (1:size(im, 3))*pixSpace(3);
 imageOrientation = info.ImageOrientationPatient
-disp('så first row: går mot vänsterhand, first col: går mot ryggen')
-disp('Därför: ryggen är där y-värdena är som störst, vänster hand är där x-värden är som störst')
+disp('sÃ¥ first row: gÃ¥r mot vÃ¤nsterhand, first col: gÃ¥r mot ryggen')
+disp('DÃ¤rfÃ¤r: ryggen Ã¤r dÃ¤r y-vÃ¤rdena Ã¤r som stÃ¶rst, vÃ¤nster hand Ã¤r dÃ¤r x-vÃ¤rden Ã¤r som stÃ¶rst')
 sliceDiff = info.SlicePositionDifferences
-disp('så vi vet att den första bilden är nederst, sedan ökande bildnummer så ökas s i LPS')
+disp('sÃ¥ vi vet att den fÃ¶rsta bilden Ã¤r nederst, sedan Ã¶kande bildnummer sÃ¥ Ã¶kas s i LPS')
 
 transversal_index = round(size(im, 3)/2);
 transversal_slice = im(:,:,transversal_index);
@@ -24,30 +26,48 @@ clf;
 imagesc(x, y, transversal_slice)
 colormap('gray');
 colorbar;
-title('transversal, sett från fötter, höger sida är patientens vänster')
+title(sprintf('transversal, sett frÃ¥n fÃ¶tter,\n hÃ¶ga y Ã¤r patientens rygg, hÃ¶ga x Ã¤r patientens vÃ¤nster'))
+xlabel('x');
+ylabel('y');
 % set(gca,'xcolor',[1 1 1],'ycolor',[1 1 1]);
 % set(gca,'ticklength',[0.05 0.05]);
 
-%coronal plane: konstant värde på y. x har samma orientering och z ska öka
-%på samma håll som det redan nu ökar, alltså
+%coronal plane: konstant vï¿½rde pï¿½ y. x har samma orientering och z ska ï¿½ka
+%pï¿½ samma hï¿½ll som det redan nu ï¿½kar, alltsï¿½
 coronal_index = round(size(im, 1)/2);
 coronal_slice = im(coronal_index, :,:);
 coronal_slice = squeeze(coronal_slice);
+coronal_slice = imrotate(coronal_slice, 90);
 figure(2);
 clf;
-imagesc(x, z, coronal_slice);
+imagesc(x, fliplr(z), coronal_slice);
+%imagesc(coronal_slice)
+set(gca,'YDir','normal') %Detta gÃ¶r sÃ¥ att hÃ¶ga z-vÃ¤rden kommer hÃ¶gst upp i bilden
 colormap('gray');
 colorbar;
-title('coronal, sett från näsan, vänster sida är för höga x, fötter är på låga z.')
+title(sprintf('coronal, sett frÃ¥n nÃ¤san, vÃ¤nster sida Ã¤r \n fÃ¶r hÃ¶ga x, fÃ¶tter Ã¤r pÃ¥ lÃ¥ga z.'))
+xlabel('x');
+ylabel('z');
 
-%sagital plane: konstant värde på x, y har samma orientering som tidigare, samma med z)
+%sagital plane: konstant vï¿½rde pï¿½ x, y har samma orientering som tidigare, samma med z)
 sagital_index = round(size(im, 2)/2);
 sagital_slice = im(:, sagital_index, :);
-sagital_slice = squeeze(sagital_slice)
+sagital_slice = squeeze(sagital_slice);
+sagital_slice = imrotate(sagital_slice, 90);
 figure(3);
 clf;
-imagesc(x, z, sagital_slice);
+%Eftersom att z Ã¶kar dÃ¥ kolummnvÃ¤rdet Ã¶kar, sÃ¥ mÃ¥ste matrisen roteras fÃ¶r
+%att fÃ¥ den rÃ¤tt?
+%imagesc(y, fliplr(z), sagital_slice');
+%imagesc(sagital_slice)
+%imagesc(y, z, sagital_slice);
+%z mÃ¥ste flippas, sÃ¥ att de element hÃ¶gst upp till vÃ¤nster i matrisen fÃ¥r
+%hÃ¶ga z-vÃ¤rden, eftersom matrisen har roterats.
+%imagesc(y, z, sagital_slice');
+imagesc(y, fliplr(z), sagital_slice);
+set(gca,'YDir','normal') %Detta gÃ¶r sÃ¥ att hÃ¶ga z-vÃ¤rden kommer hÃ¶gst upp i bilden
 colormap('gray');
 colorbar;
-title('coronal, sett från näsan, vänster sida är för höga x, fötter är på låga z.')
-
+title(sprintf('sagital, sett frÃ¥n pasientens vÃ¤nster sida, \n hÃ¶ga y-vÃ¤rden ger rygg, hÃ¶ga z-vÃ¤rden Ã¤r huvud '));
+xlabel('y (mm)')
+ylabel('z (mm)')

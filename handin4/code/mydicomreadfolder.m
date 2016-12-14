@@ -39,12 +39,14 @@ rows = first_info.Rows;
 cols = first_info.Columns;
 N = length(f);
 im = zeros(rows, cols, N);
+h.waitbar = waitbar(0);
 for i = 1:N
     waitbar(i/N);
     current_file = sprintf('%s/%s', foldername, f(i).name);
     [in, im_t] = mydicomread(current_file);
     im(:,:,i) = im_t;
 end
+delete(h.waitbar)
 info = first_info;
 first_imPos = str2double(strsplit(first_info.ImagePosition, '\'));
 last_imPos = str2double(strsplit(in.ImagePosition, '\'));
