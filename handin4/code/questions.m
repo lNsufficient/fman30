@@ -2,6 +2,7 @@
 %Part 1:
 %Vad ska man använda för default value på de olika typerna som man
 %implementerar?
+%ber�kning av intensitet.
 %Hur ska bilderna egentligen se ut? Är speciellt orolig över den när
 %skogens hål är på mitten i höjdled i stället för sidled som på de andra. 
 
