@@ -280,29 +280,38 @@ gauss_filter = fspecial('gaussian', N, std);
 blurredIm = imfilter(GUI.IM, gauss_filter, 'same');
 %blurredIm = imfilter(GUI.IM, gauss_lap, 'same');
 blurredIntensityatseed =  blurredIm(GUI.YSeed,GUI.XSeed);
-GUI.SPEED = 1./abs(blurredIm-blurredIntensityatseed).^2;
-GUI.SPEED = blurredIm - abs(blurredIm-blurredIntensityatseed);
+GUI.SPEED =  abs(blurredIm-blurredIntensityatseed).^2;
+GUI.SPEED = abs(blurredIm-intensityatseed).^2;
+%GUI.SPEED = blurredIm - abs(blurredIm-blurredIntensityatseed);
 %GUI.SPEED = GUI.SPEED - min(min(GUI.SPEED));
 TOL = 10^8;
 max_non_inf = max(max(GUI.SPEED(~isinf(GUI.SPEED))));
 GUI.SPEED(isinf(GUI.SPEED)) = max_non_inf;
 GUI.SPEED = GUI.SPEED./max_non_inf;
+GUI.SPEED = 1 - GUI.SPEED;
+exponent = 30;
+GUI.SPEED = (GUI.SPEED).^exponent;
 %GUI.SPEED(GUI.SPEED<TOL) = TOL;
 %GUI.SPEED = GUI.SPEED./max(max(GUI.SPEED));
 
 
 %Multiply Speedimage with laplacian edgemap, zeros at edges
-std = GUI.Slider2/10;
+std = GUI.Slider2/10+0.01;
 N = max(round(6*std), 20);
 gauss_filter_lap = fspecial('gaussian', N, std);
 laplace_filter = fspecial('laplacian');
-blurredLap = imfilter(GUI.IM, gauss_filter_lap, 'same');
-blurredLap = imfilter(blurredLap, laplace_filter, 'same');
-a = 0.02
+blurredLap_gauss = imfilter(GUI.IM, gauss_filter_lap, 'same');
+blurredLap = imfilter(blurredLap_gauss, laplace_filter, 'same');
+a = 4;
 blurredLap = 1./(1 + exp(a*blurredLap));
-GUI.SPEED = GUI.SPEED*(GUI.Slider3) + blurredLap*(1-GUI.Slider3);
+GUI.SPEED = GUI.SPEED*(GUI.Slider3).*blurredLap.^3*(1-GUI.Slider3);
+%GUI.SPEED = GUI.SPEED*(GUI.Slider3) - edge(blurredLap_gauss)*(1-GUI.Slider3);
+%GUI.SPEED = GUI.SPEED.^(GUI.Slider3).*blurredLap.^(1-GUI.Slider3);
 GUI.SPEED = GUI.SPEED +0.01;
 %GUI.SPEED = -blurredLap;
+
+
+
 
 
 tic;
