@@ -316,11 +316,38 @@ elseif image_case == 2
 elseif image_case == 3
     GUI.SPEED =GUI.IM.^2;
     GUI.SPEED = GUI.SPEED - min(min(GUI.SPEED));
-    GUI.SPEED = 100*GUI.SPEED./max(max(GUI.SPEED));
-    GUI.SPEED(GUI.SPEED < GUI.Slider1) = 0;
-    GUI.SPEED(GUI.SPEED > 0) = 100;
+    GUI.SPEED = GUI.SPEED./max(max(GUI.SPEED));
+    %GUI.SPEED(GUI.SPEED < GUI.Slider1) = 0;
+    %GUI.SPEED(GUI.SPEED > 0) = 100;
     se3 = strel('disk',1);
-    GUI.SPEED = imclose(GUI.SPEED, se3);
+    %GUI.SPEED = imclose(GUI.SPEED, se3);
+    
+    GUI.SPEED = GUI.SPEED.^6
+    
+    lap_filt = fspecial('laplacian');
+    
+    std = GUI.Slider2/10;
+    N = round(max(std*6, 20));
+    gauss_filt = fspecial('gaussian', N, std);
+    extraMap = imfilter(GUI.IM, gauss_filt, 'same');
+    
+    extraMap = imfilter(extraMap, lap_filt, 'same');
+    extraMap = abs(extraMap);
+    
+    extraMap = extraMap-min(min(extraMap));
+    extraMap = extraMap./max(max(extraMap));
+    extraMap = extraMap.^(1/2);
+    
+    x = 1:size(GUI.IM, 2);
+    y = 1:size(GUI.IM, 1);
+    
+    [X, Y] = ndgrid(x, y);
+    distMap = sqrt((X-GUI.XSeed).^2 + (Y - GUI.YSeed).^2);
+    %extraMap = -extraMap;
+    
+    GUI.SPEED = GUI.SPEED*(GUI.Slider3) + extraMap*(1 - GUI.Slider3);
+    %GUI.SPEED = imfilter(GUI.SPEED, gauss_filt, 'same')
+    %GUI.SPEED = GUI.SPEED./distMap
 end
 
 tic;
