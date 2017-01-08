@@ -1,4 +1,4 @@
-restar = 0;
+restart = 0;
 
 if restart
 clear;
@@ -7,7 +7,7 @@ foldername = '../images/MR-carotid-coronal';
 end
 
 %% Show result
-% imshow3D(im)
+% figure(1); imshow3D(im)
 %% Perform Segmentation
 
 %The left on the picture is the right side of the patient
@@ -15,10 +15,14 @@ end
 %Along the first collumn, z is decreasing, meaning that the feet is in the
 %bottom of the image. 
 choise = 1; %left carotid
-%choise = 2; %right carotid
+choise = 2; %right carotid
 
 if choise == 1;
 start_left = [367; 278; 30]; %Obtained using imshow3d and clicking on a point. 
+elseif choise == 2;
+start_right = [137, 257, 30]; %Obtained using imshow3d and clicking on a point.      
+start_left = start_right; 
+end
 intensityatseed = im(start_left(2), start_left(1), start_left(3));
 std = 1.2;
 N = max(round(6*std), 20);
@@ -26,7 +30,11 @@ gauss_filter = fspecial('gaussian', [N N], std); %Blurring each induvidual pictu
 blurredIm = imfilter(im, gauss_filter, 'same');
 blurredIntensityatseed =  blurredIm(start_left(2), start_left(1), start_left(3));
 speed = abs(blurredIm-blurredIntensityatseed).^2;
-speed = abs(blurredIm-intensityatseed).^2;
+if choise == 1
+    speed = abs(blurredIm-intensityatseed).^2;
+elseif choise == 2
+    speed = (max(0, intensityatseed-blurredIm)).^2;
+end
 %GUI.SPEED = blurredIm - abs(blurredIm-blurredIntensityatseed);
 %GUI.SPEED = GUI.SPEED - min(min(GUI.SPEED));
 TOL = 10^8;
@@ -38,20 +46,34 @@ exponent = 30;
 speed = speed.^exponent;
 TOL_small = 1e-8; %Smallest speed that will make it travel;
 speed(speed < TOL_small) = TOL_small;
-elseif choise == 2;
-    
-    
-end
+
 %%
-imshow3D(speed)
+% figure(2); imshow3D(speed)
 
 %%
 if restart
 T=msfm3d(speed, [start_left(2); start_left(1); start_left(3)], true, true);
 end
 %%
-a = 500;
-imshow3D(T<a);
+if choise == 1;
+    a = 500;
+elseif choise == 2;
+    a = 500;
+end
+figure(3);  imshow3D(T<a);
+%% Calculate geometry
+dimensions(1) = size(im,2);
+dimensions(2) = size(im,3);
+dimensions(3) = size(im,1);
+pixSpace([1,3]) = str2double(strsplit(info.PixelSpacing, '\'));
+pixSpace(2) = str2double(info.SliceThickness)/2 + str2double(info.SpacingBetweenSlices);
+sizes_in_mm_xyz= dimensions.*pixSpace;
+x = [pixSpace(1), sizes_in_mm_xyz(1)];
+y = [pixSpace(2), sizes_in_mm_xyz(2)];
+z = [pixSpace(3), sizes_in_mm_xyz(3)];
+
+aspect_ratio = pixSpace./pixSpace(1);
+aspect_ratio = 1./aspect_ratio; %på så vis har 1 steg på y-axeln motsvarand 1.57 steg på x-/z-axeln
 
 %% Showing the result
 plotResult;
