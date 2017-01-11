@@ -15,13 +15,20 @@ end
 %Along the first collumn, z is decreasing, meaning that the feet is in the
 %bottom of the image. 
 choise = 1; %left carotid
-choise = 2; %right carotid
+%choise = 2; %right carotid
+choise = 3;
 
 if choise == 1;
 start_left = [367; 278; 30]; %Obtained using imshow3d and clicking on a point. 
 elseif choise == 2;
-start_right = [137, 257, 30]; %Obtained using imshow3d and clicking on a point.      
+start_right = [137; 257; 30]; %Obtained using imshow3d and clicking on a point.      
 start_left = start_right; 
+elseif choise == 3;
+    start_right = [137; 257; 30];
+    start_left = [367; 278; 30];
+    extra_left = [467; 123; 30];
+    %extra_left_buttom = [331; 410; 30];
+    start_left = [start_left, start_right, extra_left];
 end
 intensityatseed = im(start_left(2), start_left(1), start_left(3));
 std = 1.2;
@@ -30,11 +37,12 @@ gauss_filter = fspecial('gaussian', [N N], std); %Blurring each induvidual pictu
 blurredIm = imfilter(im, gauss_filter, 'same');
 blurredIntensityatseed =  blurredIm(start_left(2), start_left(1), start_left(3));
 speed = abs(blurredIm-blurredIntensityatseed).^2;
-if choise == 1
-    speed = abs(blurredIm-intensityatseed).^2;
-elseif choise == 2
-    speed = (max(0, intensityatseed-blurredIm)).^2;
-end
+% if choise == 1
+%     speed = abs(blurredIm-intensityatseed).^2;
+% elseif choise == 2
+%     speed = (max(0, intensityatseed-blurredIm)).^2;
+% end
+speed = (max(0, intensityatseed-blurredIm)).^2;
 %GUI.SPEED = blurredIm - abs(blurredIm-blurredIntensityatseed);
 %GUI.SPEED = GUI.SPEED - min(min(GUI.SPEED));
 TOL = 10^8;
@@ -51,13 +59,20 @@ speed(speed < TOL_small) = TOL_small;
 % figure(2); imshow3D(speed)
 
 %%
-if restart
-T=msfm3d(speed, [start_left(2); start_left(1); start_left(3)], true, true);
+newSpeed = 1;
+if newSpeed
+    if choise == 1 || choise == 2
+        T=msfm3d(speed, [start_left(2); start_left(1); start_left(3)], true, true);
+    elseif choise == 3
+        T=msfm3d(speed, [start_left(2,:); start_left(1,:); start_left(3,:)], true, true);
+    end
 end
 %%
 if choise == 1;
     a = 500;
 elseif choise == 2;
+    a = 500;
+elseif choise == 3;
     a = 500;
 end
 figure(3);  imshow3D(T<a);

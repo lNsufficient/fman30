@@ -322,7 +322,7 @@ elseif image_case == 3
     se3 = strel('disk',1);
     %GUI.SPEED = imclose(GUI.SPEED, se3);
     
-    GUI.SPEED = GUI.SPEED.^6
+    GUI.SPEED = GUI.SPEED.^2
     
     lap_filt = fspecial('laplacian');
     

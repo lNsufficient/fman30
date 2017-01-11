@@ -19,8 +19,8 @@ p.EdgeColor = 'black';
 daspect([aspect_ratio(1), aspect_ratio(3), aspect_ratio(2)]); view(3); axis tight
 reducepatch(p, .15) % keep 15 percent of the faces 
 title([num2str(length(p.Faces)) ' Faces'])
-xlabel('x')
-ylabel('z')
-zlabel('y')
+ylabel('x (mm), increasing towards left hand side')
+xlabel('z (mm), increasing towards head')
+zlabel('y (mm), increasing towards back')
 camlight; lighting phong
 cameratoolbar

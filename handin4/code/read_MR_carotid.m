@@ -19,9 +19,9 @@ colormap('gray');
 xlabel('x, mm, höga x-värden är vänster sida av pasient')
 ylabel('z, mm, höga z-värden är fötter')
 %%
-dimensions(1) = size(im,1);
+dimensions(1) = size(im,2);
 dimensions(2) = size(im,3);
-dimensions(3) = size(im,2);
+dimensions(3) = size(im,1);
 pixSpace([1,3]) = str2double(strsplit(info.PixelSpacing, '\'));
 pixSpace(2) = str2double(info.SliceThickness)/2 + str2double(info.SpacingBetweenSlices);
 sizes_in_mm_xyz= dimensions.*pixSpace;
@@ -90,7 +90,7 @@ sagital_max = squeeze(sagital_max);
 
 figure(5)
 imagesc(y, z, sagital_max)
-imagesc(sagital_max)
+%imagesc(sagital_max)
 colormap('gray')
 title('sagital sett från höger sida')
 xlabel('y, mm, höga y-värden är framåt mot magen')
@@ -110,4 +110,4 @@ colorbar
 
 title('sett från fötter')
 xlabel('x, mm, höga x vid vänsterhand')
-ylabel('y, mm, höga y vid magen')
+ylabel('y, mm, höga y vid ryggen')

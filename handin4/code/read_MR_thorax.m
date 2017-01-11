@@ -27,8 +27,8 @@ imagesc(x, y, transversal_slice)
 colormap('gray');
 colorbar;
 title(sprintf('transversal, sett från fötter,\n höga y är patientens rygg, höga x är patientens vänster'))
-xlabel('x');
-ylabel('y');
+xlabel('x (mm)');
+ylabel('y (mm)');
 % set(gca,'xcolor',[1 1 1],'ycolor',[1 1 1]);
 % set(gca,'ticklength',[0.05 0.05]);
 
@@ -46,8 +46,8 @@ set(gca,'YDir','normal') %Detta gör så att höga z-värden kommer högst upp i
 colormap('gray');
 colorbar;
 title(sprintf('coronal, sett från näsan, vänster sida är \n för höga x, fötter är på låga z.'))
-xlabel('x');
-ylabel('z');
+xlabel('x (mm)');
+ylabel('z (mm)');
 
 %sagital plane: konstant v�rde p� x, y har samma orientering som tidigare, samma med z)
 sagital_index = round(size(im, 2)/2);
